@@ -19,3 +19,4 @@ This project is a web-based QR code generator written in Python. It supports:
 - **Text Input**: Any string up to 2,953 bytes (Version 40 limit).
 - **Color Picker**: Select the QR code foreground color.
 - **Size Input**: Set QR output size in pixels (enter `0` for default).
+
