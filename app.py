@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request
 from PIL import Image
 import os
-from StrToQR import QR_Code
+from qr_main import QR_Code
 
 app = Flask(__name__)
 
