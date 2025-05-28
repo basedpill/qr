@@ -1,28 +1,3 @@
-.container {
-    background-color: white;
-    border-radius: 12px;
-    padding: 30px;
-    max-width: 600px;
-    width: 100%;
-    text-align: center;
-}
-
-.warning {
-    color: #b30000;
-    font-weight: bold;
-    margin: 20px 0;
-}
-
-.qr-section img {
-    margin-top: 20px;
-    border: 1px solid #ddd;
-}
-
-.error {
-    color: red;
-    margin-top: 10px;
-}
-
 body {
     font-family: Arial, sans-serif;
     background-color: #d0d0d5;
@@ -34,37 +9,18 @@ body {
     padding: 20px;
 }
 
+.container {
+    background-color: white;
+    border-radius: 12px;
+    padding: 30px;
+    max-width: 600px;
+    width: 100%;
+    text-align: center;
+    margin: 0 auto;
+}
+
 h1 {
     margin-bottom: 20px;
-}
-
-input[type="text"] {
-    width: 80%;
-    padding: 10px;
-    font-size: 16px;
-    margin-bottom: 20px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
-input[type="submit"] {
-    background-color: #3b903e;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 12px;
-    font-size: 16px;
-    cursor: pointer;
-}
-
-input[type="submit"]:hover {
-    background-color: #357737;
-}
-
-.container {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 20px;
 }
 
 form {
@@ -79,40 +35,53 @@ label {
     font-weight: bold;
 }
 
+/* Input fields */
 input[type="text"],
 input[type="color"],
 input[type="number"] {
     width: 100%;
     padding: 10px;
-    border: 1px solid #ddd;
+    font-size: 16px;
+    border: 1px solid #ccc;
     border-radius: 4px;
 }
 
+/* Submit button */
 input[type="submit"] {
     background-color: #4CAF50;
     color: white;
     padding: 12px 20px;
     border: none;
-    border-radius: 4px;
-    cursor: pointer;
+    border-radius: 12px;
     font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
 }
 
 input[type="submit"]:hover {
     background-color: #45a049;
 }
 
+/* Error messages */
 .error {
     color: #ff0000;
-    margin: 10px 0;
+    margin-top: 10px;
 }
 
+/* QR output section */
 .qr-section {
     margin-top: 20px;
     text-align: center;
 }
 
+.qr-section img {
+    margin-top: 20px;
+    border: 1px solid #ddd;
+}
+
+/* Warning text */
 .warning {
     color: #ff9900;
-    margin-bottom: 10px;
+    font-weight: bold;
+    margin: 20px 0 10px;
 }
