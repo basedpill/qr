@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>QR Generator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <div class="container">
+        <h1>QR Generator</h1>
+
+        <form method="post">
+            <input type="text" id="text_input" name="textInput" placeholder="Enter URL" required><br>
+            <input type="submit" value="Generate QR">
+        </form>
+
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+
+        {% if qrGenerated %}
+        <div class="qr-section">
+            <div class="warning">
+                QR codes can contain malicious links. Always verify sources before sharing/scanning.
+            </div>
+            <img src="{{ url_for('static', filename='qr.png') }}" alt="Generated QR Code">
+        </div>
+        {% endif %}
+    </div>
+</body>
+
+</html>
