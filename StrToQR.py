@@ -92,7 +92,11 @@ class QR_Code:
         self.finalDataBlock = self.__Apply_Reed_Solomon(self.dataBlock, self.errorCorrection, self.QRCodePatternsArray)
 
         #Fill out the image with our data
+        #Fill out the image with our data
         self.QRCodeImageArray = self.__Fill_QR_Code_Image(self.QRCodeImageArray, self.QRCodePatternsArray, self.imgSize, self.finalDataBlock)
+
+        #Apply the best mask pattern
+        self.QRCodeImageArray = self.__Apply_Best_Mask(self.QRCodeImageArray, self.QRCodePatternsArray, self.imgSize)
 
 
         #Important Variables:
@@ -337,6 +341,70 @@ class QR_Code:
         QRCodeImageArray[QRCodeImageArray == 127] = 255
         return QRCodeImageArray
     
+    def __Apply_Best_Mask(self, QRCodeImageArray : np.ndarray, QRCodePatternsArray : np.ndarray, imgSize : int) -> np.ndarray:
+        """Apply the best mask pattern and format information"""
+        best_mask, best_array, best_score = find_best_mask(QRCodeImageArray, QRCodePatternsArray, imgSize)
+        
+        # Add format information
+        best_array = self.__Add_Format_Information(best_array, imgSize, best_mask, self.errorCorrection)
+        
+        print(f"Applied mask pattern {best_mask} with penalty score {best_score}")
+        return best_array
+    
+    def __Add_Format_Information(self, QRCodeImageArray : np.ndarray, imgSize : int, mask_pattern : int, error_correction : str) -> np.ndarray:
+        """Add format information bits to the QR code"""
+        # Format information encoding for error correction and mask pattern
+        format_info_table = {
+            ('L', 0): 0b111011111000100,
+            ('L', 1): 0b111001011110011,
+            ('L', 2): 0b111110110101010,
+            ('L', 3): 0b111100010011101,
+            ('M', 0): 0b101010000010010,
+            ('M', 1): 0b101000100100101,
+            ('M', 2): 0b101111001111100,
+            ('M', 3): 0b101101101001011,
+            ('Q', 0): 0b011010101011111,
+            ('Q', 1): 0b011000001101000,
+            ('Q', 2): 0b011111100110001,
+            ('Q', 3): 0b011101000000110,
+            ('H', 0): 0b001011010001001,
+            ('H', 1): 0b001001110111110,
+            ('H', 2): 0b001110011100111,
+            ('H', 3): 0b001100111010000,
+        }
+        
+        # Get format info bits
+        format_bits = format_info_table.get((error_correction, mask_pattern % 4), 0b111011111000100)
+        format_string = format(format_bits, '015b')
+        
+        # Place format info around finder patterns
+        bit_positions_1 = [
+            (8, 0), (8, 1), (8, 2), (8, 3), (8, 4), (8, 5), (8, 7), (8, 8),
+            (7, 8), (5, 8), (4, 8), (3, 8), (2, 8), (1, 8), (0, 8)
+        ]
+        
+        bit_positions_2 = [
+            (imgSize-1, 8), (imgSize-2, 8), (imgSize-3, 8), (imgSize-4, 8),
+            (imgSize-5, 8), (imgSize-6, 8), (imgSize-7, 8), (8, imgSize-8),
+            (8, imgSize-7), (8, imgSize-6), (8, imgSize-5), (8, imgSize-4),
+            (8, imgSize-3), (8, imgSize-2), (8, imgSize-1)
+        ]
+        
+        # Apply format bits
+        for i, (y, x) in enumerate(bit_positions_1):
+            if i < len(format_string):
+                color = 0 if format_string[i] == '1' else 255
+                idx = (y * imgSize + x) * 3
+                QRCodeImageArray[idx:idx+3] = color
+        
+        for i, (y, x) in enumerate(bit_positions_2):
+            if i < len(format_string):
+                color = 0 if format_string[i] == '1' else 255
+                idx = (y * imgSize + x) * 3
+                QRCodeImageArray[idx:idx+3] = color
+        
+        return QRCodeImageArray
+    
     def __PastePolygon(self, array : np.ndarray, arrayWidth : int, arrayHeight : int, indexToPaste : int, width : int, height : int, val : int) -> np.ndarray:
         for y in range(height):
             index = indexToPaste + (y * arrayWidth)
@@ -496,6 +564,159 @@ class QR_Code:
         img = Image.fromarray(outArray, mode='L')
         img.save(directory)
 
+
+import numpy as np
+
+def apply_mask_pattern(data_array, pattern_array, pattern_num, size):
+    """
+    Apply one of the 8 standard QR code mask patterns
+    
+    Args:
+        data_array: RGB image array (flattened)
+        pattern_array: Pattern array indicating where data can be placed (0 = data, 1 = pattern)
+        pattern_num: Integer 0-7 representing which mask pattern to use
+        size: Size of the QR code matrix
+    
+    Returns:
+        Masked RGB image array
+    """
+    masked_array = data_array.copy()
+    
+    for y in range(size):
+        for x in range(size):
+            index = y * size + x
+            
+            # Only apply mask to data areas (pattern_array == 0)
+            if pattern_array[index] == 0:
+                should_flip = False
+                
+                # Apply the appropriate mask pattern
+                if pattern_num == 0:  # (i + j) % 2 == 0
+                    should_flip = (y + x) % 2 == 0
+                elif pattern_num == 1:  # i % 2 == 0
+                    should_flip = y % 2 == 0
+                elif pattern_num == 2:  # j % 3 == 0
+                    should_flip = x % 3 == 0
+                elif pattern_num == 3:  # (i + j) % 3 == 0
+                    should_flip = (y + x) % 3 == 0
+                elif pattern_num == 4:  # (floor(i/2) + floor(j/3)) % 2 == 0
+                    should_flip = ((y // 2) + (x // 3)) % 2 == 0
+                elif pattern_num == 5:  # (i*j) % 2 + (i*j) % 3 == 0
+                    should_flip = ((y * x) % 2 + (y * x) % 3) == 0
+                elif pattern_num == 6:  # ((i*j) % 2 + (i*j) % 3) % 2 == 0
+                    should_flip = (((y * x) % 2 + (y * x) % 3) % 2) == 0
+                elif pattern_num == 7:  # ((i+j) % 2 + (i*j) % 3) % 2 == 0
+                    should_flip = (((y + x) % 2 + (y * x) % 3) % 2) == 0
+                
+                # Flip the pixel if mask condition is met
+                if should_flip:
+                    rgb_index = index * 3
+                    current_color = masked_array[rgb_index]
+                    new_color = 255 if current_color == 0 else 0
+                    masked_array[rgb_index:rgb_index + 3] = new_color
+    
+    return masked_array
+
+def calculate_penalty_score(image_array, size):
+    """
+    Calculate penalty score for a QR code according to ISO/IEC 18004:2015
+    Lower scores are better
+    """
+    score = 0
+    
+    # Convert RGB array to binary for easier processing
+    binary_matrix = []
+    for y in range(size):
+        row = []
+        for x in range(size):
+            rgb_index = (y * size + x) * 3
+            # 0 = black, 1 = white
+            pixel_value = 1 if image_array[rgb_index] == 255 else 0
+            row.append(pixel_value)
+        binary_matrix.append(row)
+    
+    # Rule 1: Adjacent modules in row/column with same color
+    # 3 points for each group of 5+ same-colored modules
+    for y in range(size):
+        count = 1
+        for x in range(1, size):
+            if binary_matrix[y][x] == binary_matrix[y][x-1]:
+                count += 1
+            else:
+                if count >= 5:
+                    score += 3 + (count - 5)
+                count = 1
+        if count >= 5:
+            score += 3 + (count - 5)
+    
+    # Check columns
+    for x in range(size):
+        count = 1
+        for y in range(1, size):
+            if binary_matrix[y][x] == binary_matrix[y-1][x]:
+                count += 1
+            else:
+                if count >= 5:
+                    score += 3 + (count - 5)
+                count = 1
+        if count >= 5:
+            score += 3 + (count - 5)
+    
+    # Rule 2: 2x2 blocks of same color
+    # 3 points for each 2x2 block
+    for y in range(size - 1):
+        for x in range(size - 1):
+            if (binary_matrix[y][x] == binary_matrix[y][x+1] == 
+                binary_matrix[y+1][x] == binary_matrix[y+1][x+1]):
+                score += 3
+    
+    # Rule 3: Patterns similar to finder patterns (1:1:3:1:1)
+    # 40 points for each occurrence
+    finder_pattern1 = [1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0]  # 10111010000
+    finder_pattern2 = [0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1]  # 00001011101
+    
+    # Check rows
+    for y in range(size):
+        row = binary_matrix[y]
+        for x in range(size - 10):
+            if row[x:x+11] == finder_pattern1 or row[x:x+11] == finder_pattern2:
+                score += 40
+    
+    # Check columns
+    for x in range(size):
+        col = [binary_matrix[y][x] for y in range(size)]
+        for y in range(size - 10):
+            if col[y:y+11] == finder_pattern1 or col[y:y+11] == finder_pattern2:
+                score += 40
+    
+    # Rule 4: Balance of dark and light modules
+    # 10 points for every 5% deviation from 50%
+    total_modules = size * size
+    dark_modules = sum(sum(1 for pixel in row if pixel == 0) for row in binary_matrix)
+    dark_ratio = dark_modules / total_modules
+    deviation = abs(dark_ratio - 0.5)
+    score += int(deviation * 20) * 10
+    
+    return score
+
+def find_best_mask(image_array, pattern_array, size):
+    """
+    Test all 8 mask patterns and return the one with the lowest penalty score
+    """
+    best_mask = 0
+    best_score = float('inf')
+    best_array = None
+    
+    for mask_num in range(8):
+        masked_array = apply_mask_pattern(image_array, pattern_array, mask_num, size)
+        score = calculate_penalty_score(masked_array, size)
+        
+        if score < best_score:
+            best_score = score
+            best_mask = mask_num
+            best_array = masked_array.copy()
+    
+    return best_mask, best_array, best_score
 
 
 #test = QR_Code("https://www.nayuki.io/page/creating-a-qr-code-step-by-step", "L")
