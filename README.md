@@ -1,10 +1,10 @@
 # 📄 QR Code Generator
 
-Module Code: CS2PP
-Assignment report Title: QR Coursework
-Student Number (e.g., 25098635): 32022048
-Actual hrs spent for the assignment: 24
-Which Artificial Intelligence tools used: N/A
+Module Code: CS2PP  
+Assignment report Title: QR Coursework  
+Student Number (e.g., 25098635): 32022048  
+Actual hrs spent for the assignment: 24  
+Which Artificial Intelligence tools used: N/A  
 
 ### 🧭 Overview
 This project is a web-based QR code generator written in Python. It supports:
