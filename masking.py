@@ -51,10 +51,6 @@ def apply_mask_pattern(data_array, pattern_array, pattern_num, size):
     return masked_array
 
 def calculate_penalty_score(image_array, size):
-    """
-    Calculate penalty score for a QR code according to ISO/IEC 18004:2015
-    Lower scores are better
-    """
     score = 0
     
     # Convert RGB array to binary for easier processing
@@ -133,9 +129,6 @@ def calculate_penalty_score(image_array, size):
     return score
 
 def find_best_mask(image_array, pattern_array, size):
-    """
-    Test all 8 mask patterns and return the one with the lowest penalty score
-    """
     best_mask = 0
     best_score = float('inf')
     best_array = None
