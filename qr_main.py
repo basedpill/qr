@@ -1,4 +1,3 @@
-# qr_code.py
 import numpy as np
 from reedsolo import RSCodec
 from PIL import Image
@@ -498,3 +497,8 @@ class QR_Code:
         outArray : np.ndarray = (1 - self.QRCodePatternsArray.reshape((self.imgSize, self.imgSize))) * 255
         img = Image.fromarray(outArray, mode='L')
         img.save(directory)
+    
+    def Get_QR_Image(self) -> Image.Image:
+        """for customisation"""
+        outArray = self.QRCodeImageArray.reshape((self.imgSize, self.imgSize, 3))
+        return Image.fromarray(outArray, mode='RGB')

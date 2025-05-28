@@ -1,6 +1,5 @@
 import numpy as np
 
-
 def apply_mask_pattern(data_array, pattern_array, pattern_num, size):
     """
     Apply one of the 8 standard QR code mask patterns

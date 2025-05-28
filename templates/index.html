@@ -1,3 +1,4 @@
+<!-- index.html -->
 <!DOCTYPE html>
 
 <head>
@@ -12,6 +13,16 @@
 
         <form method="post">
             <input type="text" id="text_input" name="textInput" placeholder="Enter URL" required><br>
+            
+            <!-- Add color picker -->
+            <label for="colorPicker">QR Color:</label>
+            <input type="color" id="colorPicker" name="colorPicker" value="#000000"><br>
+            
+            <!-- Add size input -->
+            <label for="sizeInput">QR Size (pixels):</label>
+            <input type="number" id="sizeInput" name="sizeInput" min="50" max="1000" value="0" 
+                   title="Enter 0 for default size"><br>
+            
             <input type="submit" value="Generate QR">
         </form>
 
