@@ -50,3 +50,5 @@ alignMentPatternTopLeftArray : list[list[int]] = [[], [416], [600], [816], [1064
 
 validAlphanumericCharacters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:"
 alphanumericCharToValueDict = {char: index for index, char in enumerate(validAlphanumericCharacters)}
+
+# used in qr_main.py for qr gen

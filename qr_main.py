@@ -499,6 +499,88 @@ class QR_Code:
         img.save(directory)
     
     def Get_QR_Image(self) -> Image.Image:
-        """for customisation"""
+        """for customisation task"""
         outArray = self.QRCodeImageArray.reshape((self.imgSize, self.imgSize, 3))
         return Image.fromarray(outArray, mode='RGB')
+    
+    # Add to the __Apply_Best_Mask method to store the best mask pattern
+    def __Apply_Best_Mask(self, QRCodeImageArray : np.ndarray, QRCodePatternsArray : np.ndarray, imgSize : int) -> np.ndarray:
+        """Apply the best mask pattern and format information"""
+        best_mask, best_array, best_score = masking.find_best_mask(
+            QRCodeImageArray, QRCodePatternsArray, imgSize
+        )
+        
+        # Store the best mask pattern for step-by-step display
+        self.best_mask = best_mask
+        
+        # Add format information
+        best_array = self.__Add_Format_Information(best_array, imgSize, best_mask, self.errorCorrection)
+        
+        print(f"Applied mask pattern {best_mask} with penalty score {best_score}")
+        return best_array
+        # Add to the QR_Code class in qr_main.py
+    def Get_QR_Generation_Steps(self, scale=10):
+        """Return a list of PIL Images showing generation steps (scaled up)"""
+        steps = []
+        size = self.imgSize
+        total_pixels = size * size
+        
+        # Step 1: Base patterns only
+        base_img = Image.new('RGB', (size, size), (255, 255, 255))
+        base_array = np.array(base_img)
+        for i in range(total_pixels):
+            if i < len(self.QRCodePatternsArray) and self.QRCodePatternsArray[i] == 1:
+                y, x = divmod(i, size)
+                base_array[y][x] = (0, 0, 0)
+        base_img = Image.fromarray(base_array)
+        steps.append(base_img.resize((size * scale, size * scale), Image.NEAREST))
+        
+        # Step 2: With data modules added
+        data_img = base_img.copy()
+        data_array = np.array(data_img)
+        for i in range(total_pixels):
+            if i < len(self.QRCodePatternsArray) and self.QRCodePatternsArray[i] == 0:
+                y, x = divmod(i, size)
+                if i < len(self.finalDataBlock):
+                    color = 0 if self.finalDataBlock[i] == 1 else 255
+                    data_array[y][x] = (color, color, color)
+        data_img = Image.fromarray(data_array)
+        steps.append(data_img.resize((size * scale, size * scale), Image.NEAREST))
+        
+        # Step 3: With mask applied
+        mask_img = data_img.copy()
+        mask_array = np.array(mask_img)
+        for y in range(size):
+            for x in range(size):
+                i = y * size + x
+                if i < total_pixels and i < len(self.QRCodePatternsArray) and self.QRCodePatternsArray[i] == 0:
+                    if self.best_mask == 0:
+                        should_flip = (y + x) % 2 == 0
+                    elif self.best_mask == 1:
+                        should_flip = y % 2 == 0
+                    elif self.best_mask == 2:
+                        should_flip = x % 3 == 0
+                    elif self.best_mask == 3:
+                        should_flip = (y + x) % 3 == 0
+                    elif self.best_mask == 4:
+                        should_flip = ((y // 2) + (x // 3)) % 2 == 0
+                    elif self.best_mask == 5:
+                        should_flip = ((y * x) % 2 + (y * x) % 3) == 0
+                    elif self.best_mask == 6:
+                        should_flip = (((y * x) % 2 + (y * x) % 3) % 2) == 0
+                    elif self.best_mask == 7:
+                        should_flip = (((y + x) % 2 + (y * x) % 3) % 2) == 0
+                    
+                    if should_flip:
+                        if mask_array[y][x][0] == 0:
+                            mask_array[y][x] = (255, 255, 255)
+                        else:
+                            mask_array[y][x] = (0, 0, 0)
+        mask_img = Image.fromarray(mask_array)
+        steps.append(mask_img.resize((size * scale, size * scale), Image.NEAREST))
+        
+        # Step 4: Final QR code with format information
+        final_img = self.Get_QR_Image()
+        steps.append(final_img.resize((size * scale, size * scale), Image.NEAREST))
+        
+        return steps

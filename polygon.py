@@ -2,3 +2,5 @@ def paste_polygon(array, array_width, array_height, index_to_paste, width, heigh
     for y in range(height):
         index = index_to_paste + (y * array_width)
         array[index: index + width] = val
+
+# 2d grid
