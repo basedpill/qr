@@ -1,9 +1,7 @@
 from flask import Flask, render_template, request
-from PIL import Image
 import os
 from qr_main import QR_Code
 from customisation import apply_customization
-import numpy as np
 
 app = Flask(__name__)
 
@@ -15,43 +13,43 @@ def index():
     error = None
     showSteps = False
     stepsAvailable = False
-    step_files = []
+    stepFiles = []
 
     if request.method == 'POST':
         inputText = request.form.get('textInput')
-        color_hex = request.form.get('colorPicker', '#000000')
-        size_input = request.form.get('sizeInput', '500')
+        colorHex = request.form.get('colorPicker', '#000000')
+        sizeInput = request.form.get('sizeInput', '500')
         showSteps = request.form.get('showSteps') == 'on'
 
         if inputText:
             try:
                 try:
-                    custom_size = int(size_input)
+                    customSize = int(sizeInput)
                 except ValueError:
-                    custom_size = 0
+                    customSize = 0
                 
                 qrObject = QR_Code(inputText, "L")
-                base_img = qrObject.Get_QR_Image()
+                baseImg = qrObject.Get_QR_Image()
                 
-                customized_img = apply_customization(
-                    base_img, 
-                    color_hex=color_hex,
-                    size_pixels=custom_size if custom_size > 0 else base_img.width * 10
+                customizedImg = apply_customization(
+                    baseImg, 
+                    colorHex,
+                    customSize if customSize > 0 else baseImg.width * 10
                 )
                 
-                customized_img.save("static/qr.png")
+                customizedImg.save("static/qr.png")
                 qrGenerated = True
                 
                 if showSteps:
                     try:
                         steps = qrObject.Get_QR_Generation_Steps(scale=10)
-                        
-                        step_files = []
+                        stepFiles = []
+
                         for i, img in enumerate(steps):
                             filename = f"step_{i+1}.png"
-                            img_path = os.path.join("static", filename)
-                            img.save(img_path)
-                            step_files.append(filename)
+                            imgPath = os.path.join("static", filename)
+                            img.save(imgPath)
+                            stepFiles.append(filename)
                         
                         stepsAvailable = True
                     except Exception as e:
@@ -67,7 +65,7 @@ def index():
         qrGenerated=qrGenerated,
         showSteps=showSteps,
         stepsAvailable=stepsAvailable,
-        step_files=step_files,
+        stepFiles=stepFiles,
         error=error
     )
 
