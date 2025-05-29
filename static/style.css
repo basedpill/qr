@@ -37,10 +37,17 @@ label {
 
 /* Input fields */
 input[type="text"],
-input[type="color"],
 input[type="number"] {
     width: 100%;
     padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+input[type="color"] {
+    width: 100%;
+    padding: 20px;
     font-size: 16px;
     border: 1px solid #ccc;
     border-radius: 4px;
