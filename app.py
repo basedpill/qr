@@ -1,9 +1,7 @@
 from flask import Flask, render_template, request
-from PIL import Image
 import os
 from qr_main import QR_Code
 from customisation import apply_customization
-import numpy as np
 
 app = Flask(__name__)
 
